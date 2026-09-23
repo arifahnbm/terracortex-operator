@@ -102,9 +102,9 @@ export default function Home() {
 
       client.on('connect', () => {
         console.log('Connected to MQTT Broker via WebSocket');
-        client.subscribe('terracortex/telemetry', (err: any) => {
+        client.subscribe('terracortex/dashboard', (err: any) => {
           if (!err) {
-            console.log('Subscribed to terracortex/telemetry');
+            console.log('Subscribed to terracortex/dashboard');
           }
         });
       });
