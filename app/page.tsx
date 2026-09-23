@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Header from "./components/Header";
 import StatusCard from "./components/StatusCard";
 import BucketAngleGauge from "./components/BucketAngleGauge";
@@ -19,6 +19,75 @@ export default function Home() {
   const [strata, setStrata] = useState<'SOFT' | 'ROCK'>('SOFT');
   const [isAnomaly, setIsAnomaly] = useState(false);
   const [advisory, setAdvisory] = useState("");
+  const [cmsiScore, setCmsiScore] = useState(0);
+  const [cavitationFreq, setCavitationFreq] = useState(0);
+  
+  // Alarm State
+  const [isMuted, setIsMuted] = useState(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const oscillatorRef = useRef<OscillatorNode | null>(null);
+  const isPlayingRef = useRef(false);
+
+  // Alarm Logic Effect
+  useEffect(() => {
+    // Condition: Pressure >= 34.8 MPa and CMSI Score >= 94
+    const shouldAlarm = pressureValue >= 34.8 && cmsiScore >= 94 && !isMuted;
+
+    if (shouldAlarm && !isPlayingRef.current) {
+      if (!audioCtxRef.current) {
+        audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      if (audioCtxRef.current.state === 'suspended') {
+        audioCtxRef.current.resume();
+      }
+
+      const osc = audioCtxRef.current.createOscillator();
+      const gainNode = audioCtxRef.current.createGain();
+      
+      // Create a harsh square wave buzzer sound
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(400, audioCtxRef.current.currentTime);
+      
+      // Add a 10Hz LFO to create a buzzing/wobble effect typical of alarms
+      const lfo = audioCtxRef.current.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(10, audioCtxRef.current.currentTime);
+      const lfoGain = audioCtxRef.current.createGain();
+      lfoGain.gain.setValueAtTime(50, audioCtxRef.current.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+      lfo.start();
+
+      osc.connect(gainNode);
+      gainNode.connect(audioCtxRef.current.destination);
+      
+      gainNode.gain.setValueAtTime(0.5, audioCtxRef.current.currentTime);
+
+      osc.start();
+      oscillatorRef.current = osc;
+      isPlayingRef.current = true;
+    } else if (!shouldAlarm && isPlayingRef.current) {
+      if (oscillatorRef.current) {
+        oscillatorRef.current.stop();
+        oscillatorRef.current.disconnect();
+        oscillatorRef.current = null;
+      }
+      isPlayingRef.current = false;
+    }
+  }, [pressureValue, cmsiScore, isMuted]);
+
+  // Cleanup Audio Context
+  useEffect(() => {
+    return () => {
+      if (oscillatorRef.current) {
+        oscillatorRef.current.stop();
+        oscillatorRef.current.disconnect();
+      }
+      if (audioCtxRef.current) {
+        audioCtxRef.current.close();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     let client: any = null;
@@ -65,6 +134,12 @@ export default function Home() {
             setIsAnomaly(!!data.cortex_inference.is_anomaly);
             if (data.cortex_inference.action_advisory) {
               setAdvisory(data.cortex_inference.action_advisory);
+            }
+            if (data.cortex_inference.cmsi_score !== undefined) {
+              setCmsiScore(data.cortex_inference.cmsi_score);
+            }
+            if (data.cortex_inference.cavitation_hz !== undefined) {
+              setCavitationFreq(data.cortex_inference.cavitation_hz);
             }
           }
         } catch (e) {
@@ -113,7 +188,7 @@ export default function Home() {
         </div>
         
         <div className="shrink-0 pb-2">
-          <MuteButton />
+          <MuteButton isMuted={isMuted} onToggle={() => setIsMuted(!isMuted)} />
         </div>
       </div>
     </main>
