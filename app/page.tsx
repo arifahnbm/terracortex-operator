@@ -14,6 +14,7 @@ export default function Home() {
   const [pressureValue, setPressureValue] = useState(20);
   const [rpmValue, setRpmValue] = useState(1600);
   const [bucketAngle, setBucketAngle] = useState(45);
+  const [oilTemp, setOilTemp] = useState(40);
   
   // AI Inference State
   const [strata, setStrata] = useState<'SOFT' | 'ROCK'>('SOFT');
@@ -30,8 +31,8 @@ export default function Home() {
 
   // Alarm Logic Effect
   useEffect(() => {
-    // Condition: Pressure >= 34.8 MPa and CMSI Score >= 94
-    const shouldAlarm = pressureValue >= 34.8 && cmsiScore >= 94 && !isMuted;
+    // Condition: (Pressure >= 34.8 MPa and CMSI Score >= 94) OR (Oil Temp > 70)
+    const shouldAlarm = ((pressureValue >= 34.8 && cmsiScore >= 94) || oilTemp > 70) && !isMuted;
 
     if (shouldAlarm && !isPlayingRef.current) {
       if (!audioCtxRef.current) {
@@ -126,6 +127,7 @@ export default function Home() {
             }
             if (data.sensors.engine_rpm) setRpmValue(data.sensors.engine_rpm);
             if (data.sensors.bucket_angle) setBucketAngle(data.sensors.bucket_angle);
+            if (data.sensors.oil_temperature !== undefined) setOilTemp(data.sensors.oil_temperature);
           }
 
           if (data.cortex_inference) {
@@ -155,7 +157,18 @@ export default function Home() {
     };
   }, []);
 
-  const rpmStatus = isAnomaly ? 'overload' : 'ok';
+  let rpmStatus = isAnomaly ? 'overload' : 'ok';
+  let displayAdvisory = advisory;
+
+  // Override status and advisory if oil temperature is critical or warning
+  if (oilTemp > 70) {
+    rpmStatus = 'overload';
+    displayAdvisory = 'Stop the engine immediately.';
+  } else if (oilTemp > 65) {
+    rpmStatus = 'warn';
+    displayAdvisory = 'The oil is starting to heat up.';
+  }
+
   const pingStatus = latency > 100 ? 'warn' : 'ok';
 
   return (
@@ -182,7 +195,7 @@ export default function Home() {
               <BucketAngleGauge angle={bucketAngle} />
             </div>
             <div className="shrink-0">
-              <EngineRpmAlert rpm={rpmValue} status={rpmStatus} pressure={pressureValue} advisory={advisory} />
+              <EngineRpmAlert rpm={rpmValue} status={rpmStatus as 'ok' | 'warn' | 'overload'} pressure={pressureValue} advisory={displayAdvisory} />
             </div>
           </div>
         </div>
