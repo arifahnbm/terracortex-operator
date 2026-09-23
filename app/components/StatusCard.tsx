@@ -5,15 +5,15 @@ interface StatusCardProps {
 export default function StatusCard({ strata = 'ROCK' }: StatusCardProps) {
   const isSoft = strata === 'SOFT';
   
-  const glowColor = isSoft ? 'from-green-600' : 'from-red-600';
-  const centerColor = isSoft ? '#16a34a' : '#ff0000'; // green-600 vs red-500
-  const ringColor = isSoft ? 'ring-green-500/20' : 'ring-red-500/20';
-  const shadowColor = isSoft ? 'shadow-[0_0_40px_rgba(34,197,94,0.15)]' : 'shadow-[0_0_40px_rgba(255,0,0,0.15)]';
+  const glowColor = isSoft ? 'from-green-500' : 'from-red-500';
+  const centerColor = isSoft ? '#16a34a' : '#ef4444'; 
+  const ringColor = isSoft ? 'ring-green-600/30' : 'ring-red-600/30';
+  const shadowColor = isSoft ? 'shadow-[0_8px_30px_rgba(34,197,94,0.25)]' : 'shadow-[0_8px_30px_rgba(239,68,68,0.25)]';
   
   const titleText = isSoft ? "SOFT GROUND" : "ROCK/\nOVERLOAD";
 
   return (
-    <div className={`relative rounded-xl border border-gray-700 bg-[#161a23] p-6 overflow-hidden ${shadowColor} ring-1 ${ringColor} w-full h-full flex flex-col justify-center`}>
+    <div className={`relative rounded-xl border border-gray-300 bg-white p-6 overflow-hidden ${shadowColor} ring-1 ${ringColor} w-full h-full flex flex-col justify-center`}>
       {/* Glow effect */}
       <div className={`absolute top-0 left-0 right-0 h-4 bg-gradient-to-b ${glowColor} to-transparent opacity-80`}></div>
       <div className={`absolute top-0 bottom-0 left-0 w-4 bg-gradient-to-r ${glowColor} to-transparent opacity-80`}></div>
@@ -33,8 +33,8 @@ export default function StatusCard({ strata = 'ROCK' }: StatusCardProps) {
         </div>
         
         <div className="flex flex-col ml-8">
-          <h2 className="text-3xl font-bold text-white mb-1">Status:</h2>
-          <h1 className="text-4xl font-black text-white leading-tight whitespace-pre-line">
+          <h2 className="text-3xl font-bold text-gray-700 mb-1">Status:</h2>
+          <h1 className="text-4xl font-black text-gray-900 leading-tight whitespace-pre-line">
             {titleText}
           </h1>
         </div>

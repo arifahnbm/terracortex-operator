@@ -101,36 +101,36 @@ export default function HydraulicPressureChart({ pressure = 24.5 }: HydraulicPre
   }, [pressure]);
 
   return (
-    <div className="rounded-xl border border-gray-700 bg-[#161a23] p-4 w-full h-full flex flex-col relative">
+    <div className="rounded-xl border border-gray-300 bg-white p-4 w-full h-full flex flex-col relative shadow-md">
       <div className="flex justify-between items-center mb-2 shrink-0">
-        <h2 className="text-lg lg:text-xl font-bold text-white tracking-wide">LIVE HYDRAULIC PRESSURE WAVE</h2>
-        <h3 className="text-lg lg:text-xl font-bold text-white">PRESSURE: {pressure.toFixed(1)} MPa</h3>
+        <h2 className="text-lg lg:text-xl font-bold text-gray-900 tracking-wide">LIVE HYDRAULIC PRESSURE WAVE</h2>
+        <h3 className="text-lg lg:text-xl font-bold text-gray-900">PRESSURE: {pressure.toFixed(1)} MPa</h3>
       </div>
       
       <div className="flex-1 relative w-full flex min-h-0 mt-2">
         {/* Y-axis labels */}
-        <div className="w-12 flex flex-col justify-between text-xs font-bold text-white h-full pb-6 z-10 text-right pr-2">
+        <div className="w-12 flex flex-col justify-between text-xs font-bold text-gray-700 h-full pb-6 z-10 text-right pr-2">
           <div>40<br/>Mpa</div>
           <div>20<br/>MPa</div>
           <div>0<br/>MPa</div>
         </div>
         
         {/* Chart area */}
-        <div className="flex-1 relative border-l border-b border-gray-800 h-full min-h-0 min-w-0 mb-6">
+        <div className="flex-1 relative border-l border-b border-gray-300 h-full min-h-0 min-w-0 mb-6">
           {/* Vertical Grid lines */}
-          <div className="absolute h-full border-l border-gray-800 left-1/4"></div>
-          <div className="absolute h-full border-l border-gray-800 left-1/2"></div>
-          <div className="absolute h-full border-l border-gray-800 left-3/4"></div>
+          <div className="absolute h-full border-l border-gray-200 left-1/4"></div>
+          <div className="absolute h-full border-l border-gray-200 left-1/2"></div>
+          <div className="absolute h-full border-l border-gray-200 left-3/4"></div>
           
           {/* Threshold Lines */}
           {/* 35 MPa (Danger Limit) -> 40 - 35 = 5 -> 5/40 = 12.5% from top */}
           <div className="absolute w-full border-t border-dashed border-red-500 top-[12.5%] z-10 opacity-70">
-            <span className="absolute -top-4 right-1 text-[9px] font-bold text-red-500 bg-[#161a23] px-1">MAX LIMIT (35 MPa)</span>
+            <span className="absolute -top-4 right-1 text-[9px] font-bold text-red-600 bg-white px-1">MAX LIMIT (35 MPa)</span>
           </div>
           
           {/* 20 MPa (Normal Limit) -> 40 - 20 = 20 -> 20/40 = 50% from top */}
-          <div className="absolute w-full border-t border-dashed border-green-500 top-[50%] z-10 opacity-70">
-            <span className="absolute -top-4 right-1 text-[9px] font-bold text-green-500 bg-[#161a23] px-1">NORMAL (20 MPa)</span>
+          <div className="absolute w-full border-t border-dashed border-green-600 top-[50%] z-10 opacity-70">
+            <span className="absolute -top-4 right-1 text-[9px] font-bold text-green-700 bg-white px-1">NORMAL (20 MPa)</span>
           </div>
 
           {/* X-axis labels */}

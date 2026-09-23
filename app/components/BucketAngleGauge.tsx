@@ -60,7 +60,7 @@ export default function BucketAngleGauge({ angle = 45 }: BucketAngleGaugeProps) 
           x="0" y="0" 
           textAnchor="middle" 
           alignmentBaseline="middle" 
-          fill="white" 
+          fill="#111827" 
           fontSize="12"
           fontWeight="bold"
         >
@@ -74,7 +74,7 @@ export default function BucketAngleGauge({ angle = 45 }: BucketAngleGaugeProps) 
 
   return (
     <div className="flex flex-col w-full h-full">
-      <h2 className="text-xl font-bold text-white mb-2 tracking-wide">Target Bucket Angle</h2>
+      <h2 className="text-xl font-bold text-gray-900 mb-2 tracking-wide">Target Bucket Angle</h2>
       <div className="relative flex-1 flex items-center justify-center">
         <svg viewBox="0 0 300 200" className="w-full max-w-[320px] overflow-visible drop-shadow-xl">
           <defs>
@@ -102,10 +102,10 @@ export default function BucketAngleGauge({ angle = 45 }: BucketAngleGaugeProps) 
           <g>{labels}</g>
 
           {/* Value Display */}
-          <text x="150" y="130" textAnchor="middle" fill="white" fontSize="42" fontWeight="900" style={{ fontVariantNumeric: 'tabular-nums' }}>
+          <text x="150" y="130" textAnchor="middle" fill="#111827" fontSize="42" fontWeight="900" style={{ fontVariantNumeric: 'tabular-nums' }}>
             {angle}
           </text>
-          <text x="150" y="150" textAnchor="middle" fill="#9ca3af" fontSize="12" fontWeight="bold" letterSpacing="3">
+          <text x="150" y="150" textAnchor="middle" fill="#4b5563" fontSize="12" fontWeight="bold" letterSpacing="3">
             TARGET
           </text>
 

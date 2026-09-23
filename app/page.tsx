@@ -84,7 +84,7 @@ export default function Home() {
   const pingStatus = latency > 100 ? 'warn' : 'ok';
 
   return (
-    <main className="h-screen w-screen overflow-hidden bg-[#0b0e14] p-4 font-sans select-none max-w-[1280px] mx-auto flex flex-col">
+    <main className="h-screen w-screen overflow-hidden bg-slate-50 p-4 font-sans select-none max-w-[1280px] mx-auto flex flex-col">
       <div className="shrink-0">
         <Header status={pingStatus} latency={latency} />
       </div>
