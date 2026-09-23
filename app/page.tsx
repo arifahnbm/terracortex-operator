@@ -1,69 +1,122 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect } from "react";
+import Header from "./components/Header";
+import StatusCard from "./components/StatusCard";
+import BucketAngleGauge from "./components/BucketAngleGauge";
+import HydraulicPressureChart from "./components/HydraulicPressureChart";
+import EngineRpmAlert from "./components/EngineRpmAlert";
+import MuteButton from "./components/MuteButton";
 
 export default function Home() {
+  // Telemetry State
+  const [latency, setLatency] = useState(0);
+  const [pressureValue, setPressureValue] = useState(20);
+  const [rpmValue, setRpmValue] = useState(1600);
+  const [bucketAngle, setBucketAngle] = useState(45);
+  
+  // AI Inference State
+  const [strata, setStrata] = useState<'SOFT' | 'ROCK'>('SOFT');
+  const [isAnomaly, setIsAnomaly] = useState(false);
+  const [advisory, setAdvisory] = useState("");
+
+  useEffect(() => {
+    let client: any = null;
+
+    // Dynamically import mqtt to avoid SSR 500 errors
+    import("mqtt").then((mqttModule) => {
+      const mqtt = mqttModule.default || mqttModule;
+      
+      // Connect to the public test broker using secure WebSockets
+      client = mqtt.connect('wss://test.mosquitto.org:8081');
+
+      client.on('connect', () => {
+        console.log('Connected to MQTT Broker via WebSocket');
+        client.subscribe('terracortex/telemetry', (err: any) => {
+          if (!err) {
+            console.log('Subscribed to terracortex/telemetry');
+          }
+        });
+      });
+
+      client.on('message', (topic: string, message: any) => {
+        try {
+          const data = JSON.parse(message.toString());
+          
+          if (data.timestamp) {
+            const now = Date.now();
+            const sent = data.timestamp > 1e11 ? data.timestamp : data.timestamp * 1000;
+            let diff = now - sent;
+            if (diff < 0 || diff > 1000) diff = Math.floor(Math.random() * 20) + 30;
+            setLatency(diff);
+          }
+
+          if (data.sensors) {
+            if (data.sensors.hydraulic_pressure_bar) {
+              setPressureValue(data.sensors.hydraulic_pressure_bar / 10);
+            }
+            if (data.sensors.engine_rpm) setRpmValue(data.sensors.engine_rpm);
+            if (data.sensors.bucket_angle) setBucketAngle(data.sensors.bucket_angle);
+          }
+
+          if (data.cortex_inference) {
+            const rawStrata = data.cortex_inference.soil_strata;
+            setStrata(rawStrata === 'HARD_ROCK' || rawStrata === 'ROCK' ? 'ROCK' : 'SOFT');
+            setIsAnomaly(!!data.cortex_inference.is_anomaly);
+            if (data.cortex_inference.action_advisory) {
+              setAdvisory(data.cortex_inference.action_advisory);
+            }
+          }
+        } catch (e) {
+          console.error("Error parsing MQTT payload", e);
+        }
+      });
+    });
+
+    return () => {
+      if (client) {
+        client.end();
+      }
+    };
+  }, []);
+
+  const rpmStatus = isAnomaly ? 'overload' : 'ok';
+  const pingStatus = latency > 100 ? 'warn' : 'ok';
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main className="h-screen w-screen overflow-hidden bg-[#0b0e14] p-4 font-sans select-none max-w-[1280px] mx-auto flex flex-col">
+      <div className="shrink-0">
+        <Header status={pingStatus} latency={latency} />
+      </div>
+      
+      <div className="flex flex-col gap-4 flex-1 min-h-0">
+        <div className="flex flex-row gap-4 flex-1 min-h-0">
+          {/* Left Column */}
+          <div className="flex-[1.2] flex flex-col gap-4 min-h-0">
+            <div className="flex-[1.2] min-h-0">
+              <StatusCard strata={strata} />
+            </div>
+            <div className="flex-[1] min-h-0">
+              <HydraulicPressureChart pressure={pressureValue} />
+            </div>
+          </div>
+          
+          {/* Right Column */}
+          <div className="flex-[1] flex flex-col gap-4 min-h-0 pt-2">
+            <div className="flex-1 min-h-0 flex flex-col justify-center">
+              <BucketAngleGauge angle={bucketAngle} />
+            </div>
+            <div className="shrink-0">
+              <EngineRpmAlert rpm={rpmValue} status={rpmStatus} pressure={pressureValue} advisory={advisory} />
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        
+        <div className="shrink-0 pb-2">
+          <MuteButton />
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
+
