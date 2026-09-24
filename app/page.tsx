@@ -24,15 +24,25 @@ export default function Home() {
   const [cavitationFreq, setCavitationFreq] = useState(0);
   
   // Alarm State
+  const [hasStarted, setHasStarted] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const oscillatorRef = useRef<OscillatorNode | null>(null);
   const isPlayingRef = useRef(false);
 
+  // Condition variables
+  const isAlarmConditionMet = (pressureValue >= 34.8 && cmsiScore >= 94) || oilTemp >= 70;
+
+  // Auto-unmute when alarm condition goes away
+  useEffect(() => {
+    if (!isAlarmConditionMet && isMuted) {
+      setIsMuted(false);
+    }
+  }, [isAlarmConditionMet, isMuted]);
+
   // Alarm Logic Effect
   useEffect(() => {
-    // Condition: (Pressure >= 34.8 MPa and CMSI Score >= 94) OR (Oil Temp > 70)
-    const shouldAlarm = ((pressureValue >= 34.8 && cmsiScore >= 94) || oilTemp > 70) && !isMuted;
+    const shouldAlarm = isAlarmConditionMet && !isMuted && hasStarted;
 
     if (shouldAlarm && !isPlayingRef.current) {
       if (!audioCtxRef.current) {
@@ -75,7 +85,7 @@ export default function Home() {
       }
       isPlayingRef.current = false;
     }
-  }, [pressureValue, cmsiScore, isMuted]);
+  }, [isAlarmConditionMet, isMuted, hasStarted]);
 
   // Cleanup Audio Context
   useEffect(() => {
@@ -161,7 +171,7 @@ export default function Home() {
   let displayAdvisory = advisory;
 
   // Override status and advisory if oil temperature is critical or warning
-  if (oilTemp > 70) {
+  if (oilTemp >= 70) {
     rpmStatus = 'overload';
     displayAdvisory = 'Stop the engine immediately.';
   } else if (oilTemp > 65) {
@@ -172,7 +182,27 @@ export default function Home() {
   const pingStatus = latency > 100 ? 'warn' : 'ok';
 
   return (
-    <main className="h-screen w-screen overflow-hidden bg-slate-50 p-4 font-sans select-none max-w-[1280px] mx-auto flex flex-col">
+    <>
+      {!hasStarted && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm text-white cursor-pointer"
+          onClick={() => {
+            if (!audioCtxRef.current) {
+              audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+            }
+            if (audioCtxRef.current.state === 'suspended') {
+              audioCtxRef.current.resume();
+            }
+            setHasStarted(true);
+          }}
+        >
+          <div className="text-center bg-slate-800 p-8 rounded-2xl shadow-2xl border border-slate-700">
+            <h1 className="text-4xl font-bold mb-4 text-emerald-400">TERRACORTEX READY</h1>
+            <p className="text-xl animate-pulse text-slate-300">Tap anywhere to start monitoring</p>
+          </div>
+        </div>
+      )}
+      <main className="h-screen w-screen overflow-hidden bg-slate-50 p-4 font-sans select-none max-w-[1280px] mx-auto flex flex-col">
       <div className="shrink-0">
         <Header status={pingStatus} latency={latency} />
       </div>
@@ -205,6 +235,7 @@ export default function Home() {
         </div>
       </div>
     </main>
+    </>
   );
 }
 
