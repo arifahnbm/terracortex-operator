@@ -3,9 +3,10 @@ import { useEffect, useRef } from "react";
 
 interface HydraulicPressureChartProps {
   pressure: number;
+  cavitationFreq?: number;
 }
 
-export default function HydraulicPressureChart({ pressure = 24.5 }: HydraulicPressureChartProps) {
+export default function HydraulicPressureChart({ pressure = 24.5, cavitationFreq = 20 }: HydraulicPressureChartProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -104,7 +105,20 @@ export default function HydraulicPressureChart({ pressure = 24.5 }: HydraulicPre
     <div className="rounded-xl border border-gray-300 bg-white p-4 w-full h-full flex flex-col relative shadow-md">
       <div className="flex justify-between items-center mb-2 shrink-0">
         <h2 className="text-lg lg:text-xl font-bold text-gray-900 tracking-wide">LIVE HYDRAULIC PRESSURE WAVE</h2>
-        <h3 className="text-lg lg:text-xl font-bold text-gray-900">PRESSURE: {pressure.toFixed(1)} MPa</h3>
+        <div className="flex items-center gap-2.5">
+          {cavitationFreq > 0 && (
+            <span className={`text-xs px-2.5 py-0.5 rounded-full font-bold font-mono border ${
+              cavitationFreq >= 100 
+                ? "bg-red-100 text-red-800 border-red-300 animate-pulse" 
+                : "bg-slate-100 text-slate-700 border-slate-300"
+            }`}>
+              {cavitationFreq} Hz {cavitationFreq >= 100 ? "CAVITATION" : "ACOUSTIC"}
+            </span>
+          )}
+          <h3 className="text-lg lg:text-xl font-bold text-gray-900 font-mono">
+            {pressure.toFixed(1)} MPa
+          </h3>
+        </div>
       </div>
       
       <div className="flex-1 relative w-full flex min-h-0 mt-2">
