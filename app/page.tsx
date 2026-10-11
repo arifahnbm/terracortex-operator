@@ -204,13 +204,13 @@ export default function Home() {
   if (oilTemp >= 70) {
     rpmStatus = "overload";
     if (oilTemp >= 90) {
-      displayAdvisory = "CRITICAL THERMAL SHUTDOWN: Suhu oli > 90°C! Matikan mesin sekarang!";
+      displayAdvisory = "CRITICAL THERMAL SHUTDOWN: Oil temperature > 90°C! Shut down machine immediately!";
     } else {
-      displayAdvisory = "STOP OPERASI: Suhu oli >= 70°C! Lakukan prosedur pendinginan.";
+      displayAdvisory = "WORK STOPPAGE: Oil temperature >= 70°C! Execute cooling cycle.";
     }
   } else if (oilTemp > 65 && rpmStatus !== "overload") {
     rpmStatus = "warn";
-    displayAdvisory = "WASPADA: Suhu oli mulai panas (> 65°C).";
+    displayAdvisory = "CAUTION: Elevated oil temperature (> 65°C).";
   }
 
   const pingStatus = latency > 100 ? "warn" : "ok";

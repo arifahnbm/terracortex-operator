@@ -27,7 +27,7 @@ export default function EngineRpmAlert({
 
   const directiveText = agentDirective || advisory || (
     isCriticalThermal 
-      ? "CRITICAL THERMAL SHUTDOWN: Suhu oli > 90°C! Segera matikan pompa hidrolik demi keselamatan!"
+      ? "CRITICAL THERMAL SHUTDOWN: Oil temperature > 90°C! Shut down hydraulic pump immediately for safety!"
       : isOverload
         ? "DERATE DIGGING ENVELOPE 30%: Batasi hentakan pada formasi keras. Standby untuk Mobile Rig Alpha."
         : status === "warn"

@@ -12,8 +12,8 @@ export default function BucketAngleGauge({ angle = 45 }: BucketAngleGaugeProps) 
   const polarToCartesian = (centerX: number, centerY: number, radius: number, angleInDegrees: number) => {
     const angleInRadians = (angleInDegrees * Math.PI) / 180.0;
     return {
-      x: centerX + radius * Math.cos(angleInRadians),
-      y: centerY - radius * Math.sin(angleInRadians), // subtract because SVG y-axis goes down
+      x: Number((centerX + radius * Math.cos(angleInRadians)).toFixed(2)),
+      y: Number((centerY - radius * Math.sin(angleInRadians)).toFixed(2)), // subtract because SVG y-axis goes down
     };
   };
 
@@ -52,7 +52,7 @@ export default function BucketAngleGauge({ angle = 45 }: BucketAngleGaugeProps) 
     const deg = valueToAngle(i);
     // Labels sit outside the ticks
     const p = polarToCartesian(150, 150, 105, deg); 
-    const rotation = 90 - deg;
+    const rotation = Number((90 - deg).toFixed(2));
     
     labels.push(
       <g key={`label-${i}`} transform={`translate(${p.x}, ${p.y}) rotate(${rotation})`}>
@@ -71,6 +71,7 @@ export default function BucketAngleGauge({ angle = 45 }: BucketAngleGaugeProps) 
   }
 
   const currentAngle = valueToAngle(angle);
+  const pointerRotation = Number((90 - currentAngle).toFixed(2));
 
   return (
     <div className="flex flex-col w-full h-full">
@@ -110,7 +111,7 @@ export default function BucketAngleGauge({ angle = 45 }: BucketAngleGaugeProps) 
           </text>
 
           {/* Green Triangle Pointer */}
-          <g transform={`translate(150, 150) rotate(${90 - currentAngle})`} className="transition-transform duration-300">
+          <g transform={`translate(150, 150) rotate(${pointerRotation})`} className="transition-transform duration-300">
              <polygon points="-8,-60 8,-60 0,-72" fill="#22c55e" />
           </g>
         </svg>
